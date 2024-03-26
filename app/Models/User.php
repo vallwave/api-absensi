@@ -19,7 +19,6 @@ class User extends Authenticatable implements JWTSubject
 
     public $incrementing = false; // Tell Laravel that primary key is not incrementing
 
-    // Remove $fillable if you have already added all columns to it
     protected $fillable = [
         'user_id',
         'id_role',
