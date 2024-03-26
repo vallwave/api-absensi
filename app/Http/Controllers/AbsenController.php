@@ -40,7 +40,7 @@ class AbsenController extends Controller
             'latitude_out' => 'required|numeric',
             'longitude' => 'required|numeric',
             'longitude_out' => 'required|numeric',
-            
+
         ]);
 
         if ($validator->fails()) {
@@ -69,6 +69,14 @@ class AbsenController extends Controller
             'longitude_out' => $request->longitude_out,
         ]);
 
-        return response()->json($absensi, 201);
+        return response()->json($absensi, 200);
+    }
+
+    public function index()
+    {
+        $user = JWTAuth::parseToken()->authenticate();
+        $absensi = $user->absensi()->get();
+
+        return response()->json($absensi, 200);
     }
 }
