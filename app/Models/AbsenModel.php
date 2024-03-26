@@ -11,7 +11,6 @@ class AbsenModel extends Model
     protected $primaryKey = 'absen_id';
 
     protected $fillable = [
-
         'absen_id',
         'user_id',
         'tanggal',
@@ -30,8 +29,6 @@ class AbsenModel extends Model
         'latitude_out',
         'longitude_out',
         'created_at',
-        'updated_at'
-
-
+        'updated_at',
     ];
 }
