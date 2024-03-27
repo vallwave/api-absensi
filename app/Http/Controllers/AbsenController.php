@@ -71,12 +71,4 @@ class AbsenController extends Controller
 
         return response()->json($absensi, 200);
     }
-
-    public function index()
-    {
-        $user = JWTAuth::parseToken()->authenticate();
-        $absensi = $user->absensi()->get();
-
-        return response()->json($absensi, 200);
-    }
 }
