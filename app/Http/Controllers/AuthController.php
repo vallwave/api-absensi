@@ -14,8 +14,8 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'user_nik' => 'required',
-            'password' => 'required|string',
+            'user_nik'      => 'required',
+            'password'      => 'required|string',
         ]);
 
         if ($validator->fails()) {
@@ -34,10 +34,10 @@ class AuthController extends Controller
     protected function respondWithToken($token)
     {
         return response()->json([
-            'access_token' => $token,
-            'token_type' => 'bearer',
-            'expires_in' => JWTAuth::factory()->getTTL() * 60,
-            'user' => auth()->user(),
+            'access_token'  => $token,
+            'token_type'    => 'bearer',
+            'expires_in'    => JWTAuth::factory()->getTTL() * 60,
+            'user'          => auth()->user(),
         ]);
     }
 

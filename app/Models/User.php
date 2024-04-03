@@ -15,9 +15,9 @@ class User extends Authenticatable implements JWTSubject
 {
     use HasApiTokens, HasFactory, Notifiable;
 
-    protected $primaryKey = 'user_id'; // Set primary key to 'user_id'
+    protected $primaryKey = 'user_id'; 
 
-    public $incrementing = false; // Tell Laravel that primary key is not incrementing
+    public $incrementing = false;
 
     protected $fillable = [
         'user_id',
@@ -68,7 +68,6 @@ class User extends Authenticatable implements JWTSubject
     protected static function booted()
     {
         static::creating(function ($user) {
-            // Set id_company to a predefined value
             $user->id_company = '4525a9ec-39e5-4b90-b043-1aec92623500';
         });
     }

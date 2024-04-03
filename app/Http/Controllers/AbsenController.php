@@ -30,11 +30,11 @@ class AbsenController extends Controller
     public function clockIn(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'lat' => 'required',
-            'long' => 'required',
-            'foto' => 'required|image',
-            'tipe' => 'required',
-            'alasan' => 'required_if:tipe,!=,1|min:10',
+            'lat'           => 'required',
+            'long'          => 'required',
+            'foto'          => 'required|image',
+            'tipe'          => 'required',
+            'alasan'        => 'required_if:tipe,!=,1|min:10',
         ]);
 
         if ($validator->fails()) {
@@ -65,15 +65,15 @@ class AbsenController extends Controller
                 $dataFoto->storeAs('photos', $fileName, 'public');
 
                 $data = [
-                    'absen_id' => $uuid->toString(),
-                    'user_id' => $user->id,
-                    'tanggal' => date('Y-m-d'),
-                    'clockin' => Carbon::now()->format('Y-m-d H:i:s'),
-                    'foto' => $fileName,
-                    'tipe' => $request->tipe,
-                    'alasan' => $request->alasan,
-                    'latitude' => $request->lat,
-                    'longitude' => $request->long,
+                    'absen_id'      => $uuid->toString(),
+                    'user_id'       => $user->id,
+                    'tanggal'       => date('Y-m-d'),
+                    'clockin'       => Carbon::now()->format('Y-m-d H:i:s'),
+                    'foto'          => $fileName,
+                    'tipe'          => $request->tipe,
+                    'alasan'        => $request->alasan,
+                    'latitude'      => $request->lat,
+                    'longitude'     => $request->long,
                 ];
 
                 $jarak = $this->haversineDistance($data['latitude'], $data['longitude'], $this->lat, $this->long);
@@ -99,9 +99,9 @@ class AbsenController extends Controller
     public function clockOut(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'lat' => 'required',
-            'long' => 'required',
-            'foto' => 'required|image',
+            'lat'               => 'required',
+            'long'              => 'required',
+            'foto'              => 'required|image',
         ]);
 
         if ($validator->fails()) {
@@ -124,10 +124,10 @@ class AbsenController extends Controller
         $dataFoto->storeAs('photos', $fileName, 'public');
 
         $data = [
-            'clockout' => Carbon::now()->format('Y-m-d H:i:s'),
-            'foto_out' => $fileName,
-            'latitude_out' => $request->lat,
-            'longitude_out' => $request->long,
+            'clockout'          => Carbon::now()->format('Y-m-d H:i:s'),
+            'foto_out'          => $fileName,
+            'latitude_out'      => $request->lat,
+            'longitude_out'     => $request->long,
         ];
 
         $jarak = $this->haversineDistance($data['latitude_out'], $data['longitude_out'], $this->lat, $this->long);
@@ -143,11 +143,13 @@ class AbsenController extends Controller
     public function clockInWfh(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'lat' => 'required',
-            'long' => 'required',
-            'foto' => 'required|image',
-            'tipe' => 'required',
-            'alasan' => 'required_if:tipe,!=,1|min:10',
+            'lat'               => 'required',
+            'long'              => 'required',
+            'foto'              => 'required|image',
+            'tipe'              => 'required',
+            'alasan'            => 'required_if:tipe,!=,1|min:10',
+            'emotion'           => 'required',
+            'confidence'        => 'required'
         ]);
 
         if ($validator->fails()) {
@@ -171,14 +173,16 @@ class AbsenController extends Controller
         Session::put('absen_id', $absenId);
 
         $data = [
-            'absen_wfh_id' => $uuid->toString(),
-            'absen_id' => $absenId,
-            'clockin' => Carbon::now()->format('Y-m-d H:i:s'),
-            'foto' => $fileName,
-            'tipe' => $request->tipe,
-            'alasan' => $request->alasan,
-            'latitude' => $request->lat,
-            'longitude' => $request->long,
+            'absen_wfh_id'      => $uuid->toString(),
+            'absen_id'          => $absenId,
+            'clockin'           => Carbon::now()->format('Y-m-d H:i:s'),
+            'foto'              => $fileName,
+            'tipe'              => $request->tipe,
+            'alasan'            => $request->alasan,
+            'latitude'          => $request->lat,
+            'longitude'         => $request->long,
+            'emotion'           => $request->emotion,
+            'confidence'        => $request->confidence,
         ];
 
         AbsenWfhModel::create($data);
@@ -188,10 +192,12 @@ class AbsenController extends Controller
     public function clockOutWfh(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'lat' => 'required|min:5|max:50',
-            'long' => 'required|min:5|max:50',
-            'foto' => 'required|image|mimes:jpg,jpeg,png,gif',
-            // 'absen_id' => 'required'
+            'lat'               => 'required|min:5|max:50',
+            'long'              => 'required|min:5|max:50',
+            'foto'              => 'required|image|mimes:jpg,jpeg,png,gif',
+            'confidence_out'    => 'required',
+            'emotion_out'       => 'required',
+            // 'absen_id'       => 'required'
         ]);
 
         if ($validator->fails()) {
@@ -203,7 +209,7 @@ class AbsenController extends Controller
             ->where('clockout', null)
             ->first();
 
-            // dd($absenId);
+        // dd($absenId);
 
         if (!$absenWfh) {
             return response()->json(['message' => 'Kamu belum clock-in atau kamu sudah melakukan clock-out'], 400);
@@ -214,11 +220,13 @@ class AbsenController extends Controller
         Storage::disk('public')->put('photos/' . $fileName, file_get_contents($dataFoto));
 
         $data = [
-            'clockout' => Carbon::now()->format('Y-m-d H:i:s'),
-            'foto_out' => $fileName,
-            'latitude_out' => $request->lat,
-            'longitude_out' => $request->long,
-            'updated_at' => Carbon::now()->format('Y-m-d H:i:s'),
+            'clockout'          => Carbon::now()->format('Y-m-d H:i:s'),
+            'foto_out'          => $fileName,
+            'latitude_out'      => $request->lat,
+            'longitude_out'     => $request->long,
+            'updated_at'        => Carbon::now()->format('Y-m-d H:i:s'),
+            'confidence_out'    => $request->confidence_out,
+            'emotion_out'       => $request->emotion_out,
         ];
 
         $absenWfh->update($data);
