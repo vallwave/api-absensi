@@ -4,9 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 class AbsenWfhModel extends Model
 {
+
+    use HasApiTokens,HasFactory,Notifiable;
+
     protected $table = 'absensi_wfh';
     protected $primaryKey = 'absen_wfh_id';
 
@@ -28,9 +33,4 @@ class AbsenWfhModel extends Model
         'created_at',
         'updated_at'
     ];
-
-    public function users()
-    {
-        return $this->hasMany(User::class, 'absen_id', 'absen_id');
-    }
 }

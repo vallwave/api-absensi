@@ -38,10 +38,12 @@ class User extends Authenticatable implements JWTSubject
         'photo'
     ];
 
+
     public function absenWfh()
     {
-        return $this->belongsTo(AbsenWfhModel::class, 'absen_id', 'absen_id');
+        return $this->hasMany(AbsenWfhModel::class, 'absen_id', 'id');
     }
+
 
     public function absensi()
     {

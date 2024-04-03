@@ -10,6 +10,9 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 use Ramsey\Uuid\Uuid;
 use Carbon\Carbon;
 use App\Models\CompanyModel;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Session;
 
 class AbsenController extends Controller
 {
@@ -152,7 +155,6 @@ class AbsenController extends Controller
         }
 
         $uuid = Uuid::uuid4();
-
         $absenWfh = AbsenWfhModel::where('clockin', '>=', Carbon::today())
             ->where('clockout', null)
             ->first();
@@ -163,11 +165,14 @@ class AbsenController extends Controller
 
         $dataFoto = $request->file('foto');
         $fileName = uniqid() . '.' . $dataFoto->getClientOriginalExtension();
-        $dataFoto->storeAs('photos', $fileName, 'public');
+        Storage::disk('public')->put('photos/' . $fileName, file_get_contents($dataFoto));
+
+        $absenId = Uuid::uuid4()->toString();
+        Session::put('absen_id', $absenId);
 
         $data = [
             'absen_wfh_id' => $uuid->toString(),
-            'absen_id' => Uuid::uuid4()->toString(),
+            'absen_id' => $absenId,
             'clockin' => Carbon::now()->format('Y-m-d H:i:s'),
             'foto' => $fileName,
             'tipe' => $request->tipe,
@@ -176,50 +181,51 @@ class AbsenController extends Controller
             'longitude' => $request->long,
         ];
 
-
-
         AbsenWfhModel::create($data);
         return response()->json($data, 200);
     }
 
     public function clockOutWfh(Request $request)
-{
-    $validator = Validator::make($request->all(), [
-        'lat' => 'required',
-        'long' => 'required',
-        'foto' => 'required|image',
-    ]);
+    {
+        $validator = Validator::make($request->all(), [
+            'lat' => 'required|min:5|max:50',
+            'long' => 'required|min:5|max:50',
+            'foto' => 'required|image|mimes:jpg,jpeg,png,gif',
+            // 'absen_id' => 'required'
+        ]);
 
-    if ($validator->fails()) {
-        return response()->json($validator->errors(), 400);
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 400);
+        }
+
+        $absenId = Session::get('absen_id');
+        $absenWfh = AbsenWfhModel::where('absen_id', $request->post('absen_id'))
+            ->where('clockout', null)
+            ->first();
+
+            // dd($absenId);
+
+        if (!$absenWfh) {
+            return response()->json(['message' => 'Kamu belum clock-in atau kamu sudah melakukan clock-out'], 400);
+        }
+
+        $dataFoto = $request->file('foto');
+        $fileName = uniqid() . '.' . $dataFoto->getClientOriginalExtension();
+        Storage::disk('public')->put('photos/' . $fileName, file_get_contents($dataFoto));
+
+        $data = [
+            'clockout' => Carbon::now()->format('Y-m-d H:i:s'),
+            'foto_out' => $fileName,
+            'latitude_out' => $request->lat,
+            'longitude_out' => $request->long,
+            'updated_at' => Carbon::now()->format('Y-m-d H:i:s'),
+        ];
+
+        $absenWfh->update($data);
+        return response()->json($absenWfh, 200);
     }
 
-    $user = JWTAuth::user();
-    $absenWfh = $user->absenWfh()
-        ->whereNotNull('clockin')
-        ->whereNull('clockout')
-        ->first();
 
-    if (!$absenWfh) {
-        // Consider adding error logging here
-        return response()->json(['message' => 'Absen WFH not found.'], 404);
-    }
-
-    $dataFoto = $request->file('foto');
-    $fileName = uniqid() . '.' . $dataFoto->getClientOriginalExtension();
-    $dataFoto->storeAs('photos', $fileName, 'public');
-
-    $data = [
-        'clockout' => now()->format('Y-m-d H:i:s'),
-        'foto_out' => $fileName,
-        'latitude_out' => $request->lat,
-        'longitude_out' => $request->long,
-    ];
-
-    $absenWfh->update($data);
-
-    return response()->json($absenWfh, 200);
-}
 
     private function haversineDistance($lat1, $lon1, $lat2, $lon2)
     {
