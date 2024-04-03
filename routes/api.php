@@ -27,7 +27,7 @@ Route::group(['middleware' => 'api', 'prefix' => 'auth'], function ($router) {
     Route::post('/logout', [AuthController::class, 'logout']);
 });
 
-// Route::apiResource('absensi', AbsenController::class)->middleware('auth:api');
+Route::apiResource('absensi', AbsenController::class)->middleware('auth:api');
 
 Route::group(['prefix' => 'absensi', 'middleware' => 'auth:api'], function () {
     Route::post('/clock-in', [AbsenController::class, 'clockIn']);
