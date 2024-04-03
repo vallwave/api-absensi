@@ -45,18 +45,18 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'user_nik' => 'required',
-            'user_name' => 'required',
-            'user_email' => 'required|string|email|unique:users',
-            'password' => 'required|string|confirmed',
-            'user_position' => 'required', // Ubah menjadi user_position
-            'user_phone' => 'required',
-            'user_admin' => 'required',
-            'user_skema' => 'required',
-            'user_status' => 'required',
-            'date_of_birth' => 'required',
-            'date_in_company' => 'required',
-            'photo' => 'required|image|mimes:jpg|max:2048'
+            'user_nik'          => 'required',
+            'user_name'         => 'required',
+            'user_email'        => 'required|string|email|unique:users',
+            'password'          => 'required|string|confirmed',
+            'user_position'     => 'required',
+            'user_phone'        => 'required',
+            'user_admin'        => 'required',
+            'user_skema'        => 'required',
+            'user_status'       => 'required',
+            'date_of_birth'     => 'required',
+            'date_in_company'   => 'required',
+            'photo'             => 'required|image|mimes:jpg|max:2048'
         ]);
 
         if ($validator->fails()) {
@@ -78,23 +78,23 @@ class AuthController extends Controller
         $photoName = Uuid::uuid4()->toString() . '.' . $photo->getClientOriginalExtension(); // Buat nama file baru dengan UUID
         $photo->move(public_path('photos'), $photoName); // Pindahkan gambar ke direktori public/photos
 
-        $uuid = Uuid::uuid4(); // Generate UUID
+        $uuid = Uuid::uuid4();
         $user = User::create(array_merge(
             $validator->validated(),
             [
-                'user_id' => $uuid->toString(), // Assign UUID to user_id
-                'password' => bcrypt($request->user_password), // Hash password
-                'user_trello' => null, // Set user_trello to null
-                'email_verified_at' => now(), // Set email_verified_at to current timestamp
-                'id_role' => $role->id, // Set id_role based on retrieved role
-                'photo' => $photoName // Simpan nama file gambar
+                'user_id'               => $uuid->toString(), 
+                'password'              => bcrypt($request->user_password), 
+                'user_trello'           => null, 
+                'email_verified_at'     => now(), 
+                'id_role'               => $role->id,
+                'photo'                 => $photoName
             ]
         ));
         $user->markEmailAsVerified();
 
         return response()->json([
-            'Pesan' => 'Berhasil Register',
-            'User' => $user
+            'Pesan'         => 'Berhasil Register',
+            'User'          => $user
         ], 201);
     }
 }
